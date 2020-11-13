@@ -22,7 +22,7 @@ class FaceRecognizer:
                 distances = fr.face_distance(self.encodings, encoding)
                 match_idx = np.argmin(distances)
 
-                if distances[match_idx] < 0.37:
+                if distances[match_idx] < 0.4:
                     match = self.names[match_idx]
                     results.append(match)
                 else:
@@ -46,30 +46,35 @@ class FaceRecognizer:
     def load_encodings(self, base_dir):
         for name in os.listdir(base_dir):
             face_dir = f"{base_dir}/{name}/"
-            img_path = face_dir + f"{name}.jpg"
-            pkl_path = face_dir + f"{name}.pkl"
+            idx = 0
+            while True:
+                img_path = face_dir + f"image_{idx}.jpg"
+                pkl_path = face_dir + f"encoding_{idx}.pkl"
+                if not os.path.isfile(img_path):
+                    break
 
-            image = fr.load_image_file(img_path)
+                image = fr.load_image_file(img_path)
+                # load encoding if exists
+                if os.path.isfile(pkl_path):
+                    print(f'Loading encoding of {name}/image_{idx}.jpg...')
 
-            # load encoding if exists
-            if os.path.isfile(pkl_path):
-                print(f'Loading encoding of {name}...')
+                    f = open(pkl_path, 'rb')
+                    face_encoding = pickle.load(f)
+                    f.close()
 
-                f = open(pkl_path, 'rb')
-                face_encoding = pickle.load(f)
-                f.close()
+                    print('Done!')
+                # create encoding file if not exists
+                else:
+                    print(f'Creating encoding of {name}/image_{idx}.jpg...')
 
-                print('Done!')
-            # create encoding file if not exists
-            else:
-                print(f'Creating encoding of {name}...')
+                    face_encoding = fr.face_encodings(image)[0]
+                    f = open(pkl_path, "wb")
+                    pickle.dump(face_encoding, f)
+                    f.close()
 
-                face_encoding = fr.face_encodings(image)[0]
-                f = open(pkl_path, "wb")
-                pickle.dump(face_encoding, f)
-                f.close()
+                    print('Done!')
 
-                print('Done!')
+                self.encodings.append(face_encoding)
+                self.names.append(name)
 
-            self.encodings.append(face_encoding)
-            self.names.append(name)
+                idx += 1
