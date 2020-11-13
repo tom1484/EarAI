@@ -22,7 +22,7 @@ class FaceRecognizer:
                 distances = fr.face_distance(self.encodings, encoding)
                 match_idx = np.argmin(distances)
 
-                if distances[match_idx] < 0.4:
+                if distances[match_idx] < 0.38:
                     match = self.names[match_idx]
                     results.append(match)
                 else:
